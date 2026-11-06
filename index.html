@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0A0E17">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<title>DAGBO · Professional Trading Terminal</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230A0E17'/><text x='96' y='125' font-size='110' text-anchor='middle' fill='%233B82F6' font-family='sans-serif' font-weight='bold'>⚡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+    darkMode: 'class',
+    theme: { extend: {
+        colors: { darkBg:'#0A0E17', darkSurface:'#121826', darkBorder:'#1E293B', accentGreen:'#10B981', accentRed:'#EF4444', accentBlue:'#3B82F6', accentGold:'#F59E0B' },
+        fontFamily: { sans:['Inter','sans-serif'], heading:['Sora','sans-serif'] }
+    }}
+}
+</script>
+<script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+<style>
+body{font-family:'Inter',sans-serif;background:#0A0E17;color:#F8FAFC;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+h1,h2,h3,h4,h5,h6,.font-heading{font-family:'Sora',sans-serif}
+.tabular-nums{font-variant-numeric:tabular-nums}
+.app-container{max-width:430px;margin:0 auto;min-height:100vh;background:#0A0E17;position:relative;box-shadow:0 0 50px rgba(0,0,0,0.8);display:flex;flex-direction:column}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:#0A0E17}
+::-webkit-scrollbar-thumb{background:#1E293B;border-radius:4px}
+.slide-up-modal{transform:translateY(100%);transition:transform 0.35s cubic-bezier(0.16,1,0.3,1)}
+.slide-up-modal.open{transform:translateY(0)}
+@keyframes pulse-subtle{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.85;transform:scale(0.98)}}
+.pulse-btn{animation:pulse-subtle 2s infinite ease-in-out}
+</style>
+</head>
+<body class="bg-black text-slate-100 flex justify-center items-center min-h-screen">
+<div class="app-container border-x border-darkBorder flex flex-col">
+<header class="sticky top-0 z-40 bg-[#0A0E17]/90 backdrop-blur-md border-b border-darkBorder px-4 py-3 flex items-center justify-between">
+<div class="flex items-center space-x-2">
+<span class="text-xl font-extrabold font-heading text-accentBlue tracking-wider">⚡ DAGBO</span>
+<span id="sessionClock" class="text-[9px] bg-darkSurface text-slate-400 px-2 py-0.5 rounded-full border border-darkBorder truncate max-w-[150px]">Loading...</span>
+<span id="livePill" class="hidden text-[8px] bg-accentGreen text-white px-2 py-0.5 rounded-full font-bold">LIVE</span>
+<span id="simBadge" class="hidden text-[8px] bg-accentRed text-white px-2 py-0.5 rounded-full font-bold">SIM</span>
+</div>
+<div class="flex items-center space-x-2">
+<button onclick="openNotifications()" class="relative p-2 rounded-xl bg-darkSurface border border-darkBorder text-slate-300 hover:text-white transition">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+<span id="notifBadge" class="absolute top-1 right-1 w-2 h-2 bg-accentRed rounded-full hidden"></span>
+</button>
+<button onclick="router.navigate('settings')" class="p-2 rounded-xl bg-darkSurface border border-darkBorder text-slate-300 hover:text-white transition">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+</button>
+</div>
+</header>
+<main id="appContent" class="flex-1 overflow-y-auto pb-24"></main>
+<nav class="absolute bottom-0 left-0 right-0 z-40 bg-[#0A0E17]/95 backdrop-blur-lg border-t border-darkBorder px-2 py-2 flex items-center justify-around">
+<button onclick="router.navigate('home')" id="nav-home" class="flex flex-col items-center justify-center w-16 py-1 text-slate-400"><svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg><span class="text-[10px] font-medium">Home</span></button>
+<button onclick="router.navigate('swing')" id="nav-swing" class="flex flex-col items-center justify-center w-16 py-1 text-slate-400"><svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg><span class="text-[10px] font-medium">Swing</span></button>
+<div class="relative -top-5">
+<button onclick="runScanner()" class="w-14 h-14 rounded-full bg-gradient-to-tr from-accentBlue to-indigo-600 text-white flex flex-col items-center justify-center shadow-lg shadow-blue-500/40 border-2 border-darkBg pulse-btn"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><span class="text-[9px] font-bold">SCAN</span></button>
+</div>
+<button onclick="router.navigate('spike')" id="nav-spike" class="flex flex-col items-center justify-center w-16 py-1 text-slate-400"><svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg><span class="text-[10px] font-medium">Spike</span></button>
+<button onclick="router.navigate('ai')" id="nav-ai" class="flex flex-col items-center justify-center w-16 py-1 text-slate-400"><svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg><span class="text-[10px] font-medium">AI</span></button>
+<button onclick="router.navigate('journal')" id="nav-journal" class="flex flex-col items-center justify-center w-16 py-1 text-slate-400"><svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg><span class="text-[10px] font-medium">Journal</span></button>
+</nav>
+<div id="modalOverlay" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-end transition-opacity opacity-0" onclick="closeModal()"><div id="modalContent" class="w-full max-w-[430px] bg-darkSurface border-t border-darkBorder rounded-t-3xl max-h-[90vh] overflow-y-auto p-5 slide-up-modal" onclick="event.stopPropagation()"></div></div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/state.js"></script>
+<script src="js/notify.js"></script>
+<script src="js/data.js"></script>
+<script src="js/trading.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/charting.js"></script>
+<script src="js/router.js"></script>
+<script src="js/ui-home.js"></script>
+<script src="js/ui-swing.js"></script>
+<script src="js/ui-journal.js"></script>
+<script src="js/ui-settings.js"></script>
+<script src="js/news-spike.js"></script>
+<script src="js/main.js"></script>
+</body>
+  </html>
